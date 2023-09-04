@@ -4,6 +4,7 @@ import time
 
 import gym
 import torch
+import pickle
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.infrastructure.logger import Logger
@@ -156,6 +157,10 @@ class RL_Trainer(object):
             envsteps_this_batch: the sum over the numbers of environment steps in paths
             train_video_paths: paths which also contain videos for visualization purposes
         """
+        print(f"itr: {itr}")
+        print(f"load_initial_expertdata: {load_initial_expertdata}")
+        print(f"collect_policy: {collect_policy}")
+        print(f"batch_size: {batch_size}")
 
         # TODO decide whether to load training data or use the current policy to collect more data
         # HINT: depending on if it's the first iteration or not, decide whether to either
@@ -163,7 +168,12 @@ class RL_Trainer(object):
                 # ``` return loaded_paths, 0, None ```
 
                 # (2) collect `self.params['batch_size']` transitions
-
+        if itr == 0:
+            with open(load_initial_expertdata, 'rb') as f:
+                data = pickle.load(f)
+                print(f"expert data: {len(data)}")
+                print(f"expert data 0: {data[0].keys()}")
+            return [data[0], data[1]], 0, None            
         # TODO collect `batch_size` samples to be used for training
         # HINT1: use sample_trajectories from utils
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
@@ -189,7 +199,7 @@ class RL_Trainer(object):
             # TODO sample some data from the data buffer
             # HINT1: use the agent's sample function
             # HINT2: how much data = self.params['train_batch_size']
-            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = TODO
+            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(self.params['train_batch_size'])
 
             # TODO use the sampled data to train an agent
             # HINT: use the agent's train function
