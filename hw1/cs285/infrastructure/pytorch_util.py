@@ -47,14 +47,16 @@ def build_mlp(
 
     # Note: nn.Sequential is an instance of nn.Module.
     seq_inputs = []
-    for n in range(n_layers):
-        seq_inputs.append(nn.Linear(in_features=input_size, out_features=size))
+    layers = [size] * n_layers
+    for i in layers:
+        # first layer is returning (100, out_features)
+        seq_inputs.append(nn.Linear(in_features=input_size, out_features=i))
         seq_inputs.append(activation)
+        input_size = i
 
     model = nn.Sequential(
         *seq_inputs,
         nn.Linear(in_features=size, out_features=output_size),
-        output_activation
     )
     print(model)
     return model

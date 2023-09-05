@@ -1,4 +1,6 @@
 import os
+os.environ["DISPLAY"] = ":1"
+os.environ['PYOPENGL_PLATFORM'] = 'egl'
 import time
 
 from cs285.infrastructure.rl_trainer import RL_Trainer

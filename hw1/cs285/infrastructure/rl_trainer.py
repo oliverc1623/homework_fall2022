@@ -158,9 +158,9 @@ class RL_Trainer(object):
             train_video_paths: paths which also contain videos for visualization purposes
         """
         print(f"itr: {itr}")
-        print(f"load_initial_expertdata: {load_initial_expertdata}")
-        print(f"collect_policy: {collect_policy}")
-        print(f"batch_size: {batch_size}")
+        # print(f"load_initial_expertdata: {load_initial_expertdata}")
+        # print(f"collect_policy: {collect_policy}")
+        # print(f"batch_size: {batch_size}")
 
         # TODO decide whether to load training data or use the current policy to collect more data
         # HINT: depending on if it's the first iteration or not, decide whether to either
@@ -173,7 +173,7 @@ class RL_Trainer(object):
                 data = pickle.load(f)
                 print(f"expert data: {len(data)}")
                 print(f"expert data 0: {data[0].keys()}")
-            return [data[0], data[1]], 0, None            
+            return data, 0, None            
         # TODO collect `batch_size` samples to be used for training
         # HINT1: use sample_trajectories from utils
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
@@ -195,7 +195,6 @@ class RL_Trainer(object):
         print('\nTraining agent using sampled data from replay buffer...')
         all_logs = []
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
-
             # TODO sample some data from the data buffer
             # HINT1: use the agent's sample function
             # HINT2: how much data = self.params['train_batch_size']
@@ -204,7 +203,7 @@ class RL_Trainer(object):
             # TODO use the sampled data to train an agent
             # HINT: use the agent's train function
             # HINT: keep the agent's training log for debugging
-            train_log = TODO
+            train_log = self.agent.train(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
             all_logs.append(train_log)
         return all_logs
 

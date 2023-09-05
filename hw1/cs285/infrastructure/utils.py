@@ -11,7 +11,7 @@ MJ_ENV_KWARGS["Ant-v4"]["use_contact_forces"] = True
 def sample_trajectory(env, policy, max_path_length, render=False):
 
     # initialize env for the beginning of a new rollout
-    ob = TODO # HINT: should be the output of resetting the env
+    ob = env.reset()
 
     # init vars
     obs, acs, rewards, next_obs, terminals, image_obs = [], [], [], [], [], []
@@ -27,11 +27,12 @@ def sample_trajectory(env, policy, max_path_length, render=False):
 
         # use the most recent ob to decide what to do
         obs.append(ob)
-        ac = TODO # HINT: query the policy's get_action function
-        ac = ac[0]
+        ac = policy.get_action(ob)
+        # ac = ac[0] # why index 0th? cause we sampled from a distribution
         acs.append(ac)
 
         # take that action and record results
+        # print(f"ac: {ac}")
         ob, rew, done, _ = env.step(ac)
 
         # record result of taking that action
@@ -41,7 +42,7 @@ def sample_trajectory(env, policy, max_path_length, render=False):
 
         # TODO end the rollout if the rollout ended
         # HINT: rollout can end due to done, or due to max_path_length
-        rollout_done = TODO # HINT: this is either 0 or 1
+        rollout_done = int(done or steps >= max_path_length) # HINT: this is either 0 or 1
         terminals.append(rollout_done)
 
         if rollout_done:
@@ -59,9 +60,16 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, r
     """
     timesteps_this_batch = 0
     paths = []
+    print(f"policy: {policy}")
+    print(f"min_timesteps_per_batch: {min_timesteps_per_batch}")
+    print(f"max_path_length: {max_path_length}")
+    print(f"render: {render}")
     while timesteps_this_batch < min_timesteps_per_batch:
 
-        TODO
+        p = sample_trajectory(env, policy, max_path_length, render)
+        paths.append(p)
+        steps = get_pathlength(p)
+        timesteps_this_batch += steps
 
     return paths, timesteps_this_batch
 
