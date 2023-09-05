@@ -82,8 +82,10 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
         # TODO return the action that the policy prescribes
         torch_obs = torch.from_numpy(obs)
-        new_actions = self.forward(torch_obs)
-        return new_actions
+        torch_obs = torch_obs.to(device=ptu.device, dtype=torch.float)
+        d = self.forward(torch_obs)
+        action = d.sample()
+        return ptu.to_numpy(action)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -95,8 +97,9 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        new_actions = self.mean_net(observation.to(ptu.device))
-        return new_actions
+        mean = self.mean_net(observation)
+        std = torch.exp(self.logstd)
+        return distributions.Normal(loc=mean, scale=std)
 
 
 #####################################################
@@ -112,8 +115,22 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        new_actions = self.get_action(observations)
-        loss = self.loss(new_actions, torch.from_numpy(actions).to(ptu.device))
+        observations = torch.from_numpy(observations)
+        actions = torch.from_numpy(actions)
+
+        observations = observations.to(ptu.device)
+        actions = actions.to(ptu.device)
+
+        # Build the probability distribution over actions
+        distribution = self.forward(observations)
+        sampled_actions = distribution.rsample()
+        loss = self.loss(sampled_actions, actions)
+
+        # Backpropagation
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
